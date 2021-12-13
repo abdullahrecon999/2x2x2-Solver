@@ -1,28 +1,8 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
-url = 'http://192.168.18.11:8080/video'
-cap = cv2.VideoCapture(0)
-
-while(True):
-    ret, frame = cap.read()
-    frame = cv2.resize(frame,(700,500))
-    frame = cv2.flip(frame,1)
-    height, width = frame.shape[:2]
-    #frame = cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
-
-    # Define ROI Box Dimensions
-    top_left_x = int (width / 3)
-    top_left_y = int ((height / 2) + (height / 4))
-    bottom_right_x = int ((width / 3) * 2)
-    bottom_right_y = int ((height / 2) - (height / 4))
-
-    # Draw rectangular window for our region of interest   
-    cv2.rectangle(frame, (top_left_x,top_left_y), (bottom_right_x,bottom_right_y), 255, 3)
-
-    # Crop window of observation we defined above
-    cropped = frame[bottom_right_y:top_left_y , top_left_x:bottom_right_x]
-
+def sketch_transform(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     lower_blue = np.array([80,20,20])
@@ -50,15 +30,31 @@ while(True):
     mask_white = cv2.inRange(hsv, lower_white, upper_white)
 
     mask = mask_blue + mask_red + mask_yellow + mask_green + mask_orange + mask_white
+    return mask
 
-    res = cv2.bitwise_and(frame,frame, mask= mask)
-
-    if frame is not None:
-        cv2.imshow('frame',frame)
-        cv2.imshow('res',res)
-        cv2.imshow('cropped',cropped)
-
-    q = cv2.waitKey(1)
-    if q == ord("q"):
+cam_capture = cv2.VideoCapture(0)
+cv2.destroyAllWindows()
+upper_left = (50, 50)
+bottom_right = (300, 300)
+while True:
+    _, image_frame = cam_capture.read()
+    
+    #Rectangle marker
+    r = cv2.rectangle(image_frame, upper_left, bottom_right, (100, 50, 200), 3)
+    rect_img = image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]]
+    
+    sketcher_rect = rect_img
+    sketcher_rect = sketch_transform(sketcher_rect)
+    
+    #Conversion for 3 channels to put back on original image (streaming)
+    #sketcher_rect_rgb = cv2.cvtColor(sketcher_rect, cv2.COLOR_GRAY2RGB)
+    sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img, mask= sketcher_rect)
+    
+    #Replacing the sketched image on Region of Interest
+    image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] = sketcher_rect_rgb
+    cv2.imshow("Sketcher ROI", image_frame)
+    if cv2.waitKey(1) == 13:
         break
+        
+cam_capture.release()
 cv2.destroyAllWindows()
