@@ -54,8 +54,25 @@ while True:
     sketcher_rect = rect_img    # Multiple for every r -------------
     sketcher_rect = sketch_transform(sketcher_rect)
 
-    sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img, mask= sketcher_rect)
-    
+    sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img)
+    b = sketcher_rect_rgb[:, :, :1]
+    g = sketcher_rect_rgb[:, :, 1:2]
+    r = sketcher_rect_rgb[:, :, 2:]
+  
+    # computing the mean
+    b_mean = np.mean(b)
+    g_mean = np.mean(g)
+    r_mean = np.mean(r)
+  
+    # displaying the most prominent color
+    if (b_mean > g_mean and b_mean > r_mean):
+        print("Blue")
+    if (g_mean > r_mean and g_mean > b_mean):
+        print("Green")
+    else:
+        print("Red")
+    #sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img)
+
     #Replacing the sketched image on Region of Interest
     image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] = sketcher_rect_rgb
     cv2.imshow("Sketcher ROI", image_frame)
