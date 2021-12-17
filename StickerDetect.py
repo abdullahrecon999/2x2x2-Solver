@@ -32,50 +32,73 @@ def sketch_transform(frame):
     mask = mask_blue + mask_red + mask_yellow + mask_green + mask_orange + mask_white
     return mask
 
+def getcolor(r,g,b): # compare rgb values and return color
+    if (r >= 118 and r <= 230 ) and (g >= 60 and g <= 174) and (b > 15 and b < 130):
+        return 'b'
+    elif (r >= 148 and r <= 250 ) and (g >= 140 and g < 250) and (b >= 140 and b < 250):
+        return 'w'
+    elif (r >= 21 and r <= 118 ) and (g > 130 and g < 255) and (b > 150 and b < 255):
+        return 'y'
+    elif (r > 0 and r <= 75 ) and (g >= 79 and g <= 130) and (b > 125 and b < 255):
+        return 'o'
+    elif (r >= 10 and r <= 70 ) and (g >= 20 and g < 79) and (b >= 90 and b < 255):
+        return 'r'
+    elif (r >= 40 and r <= 116 ) and (g > 130 and g <= 235) and (b > 80  and b <= 170):
+        return 'g'
+    else:
+        pass
+
+url = 'http://192.168.18.11:8080/video'
 cam_capture = cv2.VideoCapture(0)
 cv2.destroyAllWindows()
 upper_left = (50, 50)
 bottom_right = (300, 300)
 center = (int(((upper_left[0]+bottom_right[0])/2)),int((upper_left[1]+bottom_right[1])/2))
 offset = 20
+
 while True:
     _, image_frame = cam_capture.read()
-    
+    image_frame = cv2.flip(image_frame,1)
+    colorFrame = np.zeros(shape=[500, 500, 3], dtype=np.uint8)
+
     #Rectangle marker
-    r = cv2.rectangle(image_frame, upper_left, bottom_right, (0, 0, 0), 2)
+    rectMark = cv2.rectangle(image_frame, upper_left, bottom_right, (0, 0, 0), 2)
 
-    r1 = cv2.rectangle(r, (upper_left[0]+offset,upper_left[1]+offset), (center[0]-offset,center[1]-offset), (0, 0, 0), 1)
-    r2 = cv2.rectangle(r, (center[0]+offset,upper_left[1]+offset), (bottom_right[0]-offset,center[1]-offset), (0, 0, 0), 1)
-    r3 = cv2.rectangle(r, (upper_left[0]+offset,center[1]+offset), (center[0]-offset,bottom_right[1]-offset), (0, 0, 0), 1)
-    r4 = cv2.rectangle(r, (center[0]+offset,center[1]+offset), (bottom_right[0]-offset,bottom_right[1]-offset), (0, 0, 0), 1)
+    r1 = cv2.rectangle(rectMark, (upper_left[0]+offset,upper_left[1]+offset), (center[0]-offset,center[1]-offset), (0, 0, 0), 1)
+    r2 = cv2.rectangle(rectMark, (center[0]+offset,upper_left[1]+offset), (bottom_right[0]-offset,center[1]-offset), (0, 0, 0), 1)
+    r3 = cv2.rectangle(rectMark, (upper_left[0]+offset,center[1]+offset), (center[0]-offset,bottom_right[1]-offset), (0, 0, 0), 1)
+    r4 = cv2.rectangle(rectMark, (center[0]+offset,center[1]+offset), (bottom_right[0]-offset,bottom_right[1]-offset), (0, 0, 0), 1)
 
-    rect_img = image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] # multiple of these for every r
+    rect_img1 = image_frame[upper_left[1]+offset : center[1]-offset, upper_left[0]+offset : center[0]-offset]
+    rect_img2 = image_frame[upper_left[1]+offset : center[1]-offset, center[0]+offset : bottom_right[0]-offset]
+    #rect_img3 = image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]]
+    #rect_img4 = image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]]
+
+    Cube1 = rect_img2
+    #sketcher_rect = sketch_transform(sketcher_rect)
+    #Cube1 = cv2.bitwise_and(rect_img1,rect_img1)
+
+    r,g,b = cv2.split(Cube1)
+
+    b_mean = cv2.mean(b)[0]
+    g_mean = cv2.mean(g)[0]
+    r_mean = cv2.mean(r)[0]
+
+    colorframe = cv2.rectangle(colorFrame, (1,1), (500,500), (0, 0, 0), -1)
+
+    colordetect1 = cv2.rectangle(colorframe, (10,10), (100,100), (r_mean, g_mean, b_mean), -1)
+    colordetect2 = cv2.rectangle(colorframe, (120,10), (210,100), (r_mean, g_mean, b_mean), -1)
+    colordetect3 = cv2.rectangle(colorframe, (10,120), (100,210), (r_mean, g_mean, b_mean), -1)
+    colordetect4 = cv2.rectangle(colorframe, (120,120), (210,210), (r_mean, g_mean, 0), -1)
+
+    print(getcolor(r_mean,g_mean,b_mean))
     
-    sketcher_rect = rect_img    # Multiple for every r -------------
-    sketcher_rect = sketch_transform(sketcher_rect)
+    #image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] = Cube1
+    #image_frame[upper_left[1]+offset : center[1]-offset, upper_left[1]+offset : center[0]-offset] = Cube1
+    image_frame[upper_left[1]+offset : center[1]-offset, center[0]+offset : bottom_right[0]-offset] = Cube1
 
-    sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img)
-    b = sketcher_rect_rgb[:, :, :1]
-    g = sketcher_rect_rgb[:, :, 1:2]
-    r = sketcher_rect_rgb[:, :, 2:]
-  
-    # computing the mean
-    b_mean = np.mean(b)
-    g_mean = np.mean(g)
-    r_mean = np.mean(r)
-  
-    # displaying the most prominent color
-    if (b_mean > g_mean and b_mean > r_mean):
-        print("Blue")
-    if (g_mean > r_mean and g_mean > b_mean):
-        print("Green")
-    else:
-        print("Red")
-    #sketcher_rect_rgb = cv2.bitwise_and(rect_img,rect_img)
-
-    #Replacing the sketched image on Region of Interest
-    image_frame[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]] = sketcher_rect_rgb
-    cv2.imshow("Sketcher ROI", image_frame)
+    cv2.imshow("Color detect", image_frame)
+    cv2.imshow("Color Output",colorFrame)
     if cv2.waitKey(1) == 13:
         break
         
