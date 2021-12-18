@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+import KnnColor
 
 def getcolor(r,g,b):
     if (r >= 118 and r <= 230 ) and (g >= 60 and g <= 174) and (b > 15 and b < 130):
@@ -63,7 +63,7 @@ def main():
         cubeCols.append(list(cv2.split(Cube2)))
         cubeCols.append(list(cv2.split(Cube3)))
         cubeCols.append(list(cv2.split(Cube4)))
-        print(cv2.mean(cubeCols[0][0])[0])      #[0] cube 0 , [0] red, [0] for mean
+        #print(cv2.mean(cubeCols[0][0])[0])      #[0] cube 0 , [0] red, [0] for mean
 
         CubeCols = {
             'C0':[cv2.mean(cubeCols[0][0])[0] ,cv2.mean(cubeCols[0][1])[0] ,cv2.mean(cubeCols[0][2])[0]],
@@ -79,7 +79,7 @@ def main():
         colordetect4 = cv2.rectangle(colorframe, (120,120), (210,210), (cv2.mean(cubeCols[3][0])[0], cv2.mean(cubeCols[3][1])[0], cv2.mean(cubeCols[3][2])[0]), -1)
 
         for i in CubeCols:
-            print(i," : ",getcolor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2]))
+            print(i," : ",classifier.PredictColor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2]))
 
         image_frame[upper_left[1]+offset : center[1]-offset, upper_left[1]+offset : center[0]-offset] = Cube1
         image_frame[upper_left[1]+offset : center[1]-offset, center[0]+offset : bottom_right[0]-offset] = Cube2
@@ -98,4 +98,8 @@ def calibrate():
     pass
 
 if __name__ == "__main__":
+    #main()
+    classifier = KnnColor.KnnClassifier(7)
+    #classifier.CreateKNN()
     main()
+    print(classifier.PredictColor( 62, 120, 130 ))
