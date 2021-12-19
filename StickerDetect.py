@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import KnnColor
+import statistics as st
 
 def getcolor(r,g,b):
     if (r >= 118 and r <= 230 ) and (g >= 60 and g <= 174) and (b > 15 and b < 130):
@@ -25,7 +26,13 @@ def main():
     upper_left = (50, 50)
     bottom_right = (300, 300)
     center = (int(((upper_left[0]+bottom_right[0])/2)),int((upper_left[1]+bottom_right[1])/2))
-    offset = 20
+    offset = 50
+
+    count=0
+    sq1 = list()
+    sq2 = list()
+    sq3 = list()
+    sq4 = list()
 
     while True:
         _, image_frame = cam_capture.read()
@@ -78,8 +85,27 @@ def main():
         colordetect3 = cv2.rectangle(colorframe, (10,120), (100,210), (cv2.mean(cubeCols[2][0])[0], cv2.mean(cubeCols[2][1])[0], cv2.mean(cubeCols[2][2])[0]), -1)
         colordetect4 = cv2.rectangle(colorframe, (120,120), (210,210), (cv2.mean(cubeCols[3][0])[0], cv2.mean(cubeCols[3][1])[0], cv2.mean(cubeCols[3][2])[0]), -1)
 
-        for i in CubeCols:
-            print(i," : ",classifier.PredictColor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2]))
+        #for i in CubeCols:
+        #    print(i," : ",classifier.PredictColor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2]))
+        
+        sq1.append(classifier.PredictColor(CubeCols['C0'][0],CubeCols['C0'][1],CubeCols['C0'][2]))
+        sq2.append(classifier.PredictColor(CubeCols['C1'][0],CubeCols['C1'][1],CubeCols['C1'][2]))
+        sq3.append(classifier.PredictColor(CubeCols['C2'][0],CubeCols['C2'][1],CubeCols['C2'][2]))
+        sq4.append(classifier.PredictColor(CubeCols['C3'][0],CubeCols['C3'][1],CubeCols['C3'][2]))
+        count +=1
+
+        if count == 5:
+            count = 0
+            print("------------------")
+            print(st.mode(sq1))
+            print(st.mode(sq2))
+            print(st.mode(sq3))
+            print(st.mode(sq4))
+            print("------------------")
+            sq1.clear()
+            sq2.clear()
+            sq3.clear()
+            sq4.clear()
 
         image_frame[upper_left[1]+offset : center[1]-offset, upper_left[1]+offset : center[0]-offset] = Cube1
         image_frame[upper_left[1]+offset : center[1]-offset, center[0]+offset : bottom_right[0]-offset] = Cube2
@@ -88,9 +114,14 @@ def main():
 
         cv2.imshow("Color detect", image_frame)
         cv2.imshow("Color Output",colorFrame)
-        if cv2.waitKey(1) == 13:
+
+        keypress = cv2.waitKey(1)
+
+        if keypress == 13:
             break
-            
+        elif keypress == ord('a'):
+            print("[",int(cv2.mean(cubeCols[0][0])[0]),"," ,int(cv2.mean(cubeCols[0][1])[0]),",",int(cv2.mean(cubeCols[0][2])[0]),"],",end="")
+
     cam_capture.release()
     cv2.destroyAllWindows()
 
@@ -99,7 +130,7 @@ def calibrate():
 
 if __name__ == "__main__":
     #main()
-    classifier = KnnColor.KnnClassifier(7)
-    #classifier.CreateKNN()
+    classifier = KnnColor.KnnClassifier(2)
     main()
-    print(classifier.PredictColor( 62, 120, 130 ))
+    #print(classifier.PredictColor( 62, 120, 130 ))
+    print("End")
