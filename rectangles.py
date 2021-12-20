@@ -51,12 +51,22 @@ cen_bt = (int(((bottom_up[0]+bottom_down[0])/2)),int((bottom_up[1]+bottom_down[1
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 
+# defining coordinates for the arrow
+turn_right_start = (165, 380)
+turn_right_end = (265, 380)
+
+turn_up_start = (530, 165)
+turn_up_end = (530, 265)
+
+turn_up_start2 = (510, 165)
+turn_up_end2 = (510, 265)
+
 # an array of strings which will display which side should the user capture now
 side = ['FRONT', 'RIGHT', 'BACK', 'LEFT', 'UP', 'BOTTOM']
 
 # Dictionary of colors for secodary screen
 defaultCols = {
-    'blue':  [255, 51, 19  ],
+    'blue':  [255, 51, 19],
     'white': [249, 237, 236],
     'red':   [45, 48, 251],
     'green': [45, 251, 80 ],
@@ -94,6 +104,16 @@ def fillColors():
         cube += 1
     print(colors)
 
+def showArrow(st_coor, end_coor):
+    print('do something')
+    cv2.arrowedLine(colorframe, st_coor, end_coor, (255,255,255), 5)
+
+def remArrow(st_coor, end_coor):
+    cv2.arrowedLine(colorframe, st_coor, end_coor, (0,0,0), 5)
+    
+
+
+
 def MarkSide(upper_left, bottom_right, add):
     if(add == 1):
         cv2.rectangle(colorframe, (upper_left[0],upper_left[1]), (bottom_right[0],bottom_right[1]), (255,255,255), 1)
@@ -112,9 +132,9 @@ def main():
     
     # creating an array of 500x500 pixels to be used in frames
     # global colorFrame
-    colorFrame = np.zeros(shape=[400, 405, 3], dtype=np.uint8)
+    colorFrame = np.zeros(shape=[430, 550, 3], dtype=np.uint8)
     global colorframe
-    colorframe = cv2.rectangle(colorFrame, (0,0), (400,405), (0,0,0), 1)
+    colorframe = cv2.rectangle(colorFrame, (0,0), (430,550), (0,0,0), 1)
 
     count1=0
     sq1 = list()
@@ -124,10 +144,12 @@ def main():
 
     while(True):
         # start reading the camera
+        global frame
         _, frame = cap.read()
         #frame = cv2.flip(frame,1)
 
         # central rectangle to fit smaller rectangles in
+        global rectMark
         rectMark = cv2.rectangle(frame, upper_left, bottom_right, (255,255,255), 2)
 
         # creating rectangles on screen for cube allignment and picking out colors
@@ -162,9 +184,9 @@ def main():
 
         # adding text to the cv2 video frame
         cv2.putText(frame, 
-                'ALIGN ' + text + 'SIDE AND PRESS ENTER', 
-                (50, 50), 
-                font, 1, 
+                'ALIGN ' + text + 'FACE', 
+                (50,50), 
+                font, 2, 
                 (255, 255, 255), 
                 2,
                 cv2.LINE_4)
@@ -216,26 +238,53 @@ def main():
             MarkSide(bottom_up, bottom_down, 0)
             MarkSide(front_up, front_down, 1)
             MarkSide(right_up, right_down, 0)
+            remArrow(turn_right_end, turn_right_start)
+            remArrow(turn_up_start, turn_up_end)
+            remArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_up_end, turn_up_start)
         elif(count == 1):
             MarkSide(front_up, front_down, 0)
             MarkSide(right_up, right_down, 1)
             MarkSide(back_up, back_down, 0)
+            showArrow(turn_right_end, turn_right_start)
+            remArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_up_start, turn_up_end)
+            remArrow(turn_up_end, turn_up_start)
         elif(count == 2):
             MarkSide(right_up, right_down, 0)
             MarkSide(back_up, back_down, 1)
             MarkSide(left_up, left_down, 0)
+            showArrow(turn_right_end, turn_right_start)
+            remArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_up_start, turn_up_end)
+            remArrow(turn_up_end, turn_up_start)
         elif(count == 3):
             MarkSide(back_up, back_down, 0)
             MarkSide(left_up, left_down, 1)
             MarkSide(top_up, top_down, 0)
+            showArrow(turn_right_end, turn_right_start)
+            remArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_up_start, turn_up_end)
+            remArrow(turn_up_end, turn_up_start)
         elif(count == 4):
             MarkSide(left_up, left_down, 0)
             MarkSide(top_up, top_down, 1)
             MarkSide(bottom_up, bottom_down, 0)
+            remArrow(turn_up_end, turn_up_start)
+            showArrow(turn_up_start, turn_up_end)
+            remArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_right_end, turn_right_start)
         else:
             MarkSide(top_up, top_down, 0)
             MarkSide(bottom_up, bottom_down, 1)
             MarkSide(front_up, front_down, 0)
+            remArrow(turn_up_start, turn_up_end)
+            showArrow(turn_up_end, turn_up_start)
+            showArrow(turn_up_end2, turn_up_start2)
+            remArrow(turn_right_end, turn_right_start)
+
+
+
 
         # capture, store and display colors 
         if keypress == 13:
@@ -271,6 +320,7 @@ def calibrate():
 
 if __name__ == "__main__":
     #main()
+    global classifier
     classifier = KnnColor.KnnClassifier(2)
     main()
     #print(classifier.PredictColor( 62, 120, 130 ))
