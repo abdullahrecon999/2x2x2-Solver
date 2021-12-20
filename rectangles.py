@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
-
+import KnnColor
+import statistics as st
 
 # initialize the cv2 object as a video frame
+url = 'http://192.168.18.11:8080/video'
 cap = cv2.VideoCapture(0) 
 
 # setting the size of the video window
@@ -16,9 +18,9 @@ bottom_right = (540, 340)
 
 # the center of the box drawn in the middle
 center = (int(((upper_left[0]+bottom_right[0])/2)),int((upper_left[1]+bottom_right[1])/2))
-offset = 25
+offset = 50
 
-# defining the coordinates for teh rectangles in the secondary screen
+# defining the coordinates for the rectangles in the secondary screen
 offset2 = 5
 
 left_up = (1, 150)
@@ -52,42 +54,29 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 # an array of strings which will display which side should the user capture now
 side = ['FRONT', 'RIGHT', 'BACK', 'LEFT', 'UP', 'BOTTOM']
 
+# Dictionary of colors for secodary screen
+defaultCols = {
+    'blue':  [255, 51, 19  ],
+    'white': [249, 237, 236],
+    'red':   [45, 48, 251],
+    'green': [45, 251, 80 ],
+    'yellow':[38, 254, 251 ],
+    'orange':[17, 154, 255],
+}
 
 # declaring a 2D array to store individual side colors in each array
 colors = [[0 for x in range(4)] for y in range(6)] 
 
 
-# method to differentiate colors based on a range
-def getcolor(r,g,b):
-    # blue
-    if (r >= 118 and r <= 230 ) and (g >= 60 and g <= 174) and (b > 15 and b < 130):
-        return 'b'
-    # white
-    elif (r >= 148 and r <= 250 ) and (g >= 140 and g < 250) and (b >= 140 and b < 250):
-        return 'w'
-    # yellow
-    elif (r >= 21 and r <= 118 ) and (g > 130 and g < 255) and (b > 150 and b < 255):
-        return 'y'
-    # orange
-    elif (r > 0 and r <= 75 ) and (g >= 79 and g <= 130) and (b > 125 and b < 255):
-        return 'o'
-    # red
-    elif (r >= 10 and r <= 70 ) and (g >= 20 and g < 79) and (b >= 90 and b < 255):
-        return 'r'
-    # green
-    elif (r >= 40 and r <= 116 ) and (g > 130 and g <= 235) and (b > 80  and b <= 170):
-        return 'g'
-    else:
-        pass
-
-
 # method to fill the blocks in the secondary screen
+# Fixing Colors for All sides instead of printing RGB
 def fillBlocks(upper_left, bottom_right, center, offset):
     fillColors()
-    r1 = cv2.rectangle(colorframe, (upper_left[0]+offset,upper_left[1]+offset), (center[0]-offset,center[1]-offset), (cv2.mean(cubeCols[0][0])[0] ,cv2.mean(cubeCols[0][1])[0] ,cv2.mean(cubeCols[0][2])[0]), -1)
-    r2 = cv2.rectangle(colorframe, (center[0]+offset,upper_left[1]+offset), (bottom_right[0]-offset,center[1]-offset), (cv2.mean(cubeCols[1][0])[0] ,cv2.mean(cubeCols[1][1])[0] ,cv2.mean(cubeCols[1][2])[0]), -1)
-    r3 = cv2.rectangle(colorframe, (upper_left[0]+offset,center[1]+offset), (center[0]-offset,bottom_right[1]-offset), (cv2.mean(cubeCols[2][0])[0] ,cv2.mean(cubeCols[2][1])[0] ,cv2.mean(cubeCols[2][2])[0]), -1)
-    r4 = cv2.rectangle(colorframe, (center[0]+offset,center[1]+offset), (bottom_right[0]-offset,bottom_right[1]-offset), (cv2.mean(cubeCols[3][0])[0] ,cv2.mean(cubeCols[3][1])[0] ,cv2.mean(cubeCols[3][2])[0]), -1)
+
+    r1 = cv2.rectangle(colorframe, (upper_left[0]+offset,upper_left[1]+offset), (center[0]-offset,center[1]-offset), defaultCols[colors[count][0]], -1)
+    r2 = cv2.rectangle(colorframe, (center[0]+offset,upper_left[1]+offset), (bottom_right[0]-offset,center[1]-offset), defaultCols[colors[count][1]], -1)
+    r3 = cv2.rectangle(colorframe, (upper_left[0]+offset,center[1]+offset), (center[0]-offset,bottom_right[1]-offset), defaultCols[colors[count][2]], -1)
+    r4 = cv2.rectangle(colorframe, (center[0]+offset,center[1]+offset), (bottom_right[0]-offset,bottom_right[1]-offset), defaultCols[colors[count][3]], -1)
 
 
 # method to fill the array with colors
@@ -101,11 +90,15 @@ def fillColors():
     }
     cube = 0
     for i in CubeCols:
-        colors[count][cube] = getcolor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2])
+        colors[count][cube] = classifier.PredictColor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2])
         cube += 1
     print(colors)
 
-
+def MarkSide(upper_left, bottom_right, add):
+    if(add == 1):
+        cv2.rectangle(colorframe, (upper_left[0],upper_left[1]), (bottom_right[0],bottom_right[1]), (255,255,255), 1)
+    elif(add == 0):
+        cv2.rectangle(colorframe, (upper_left[0],upper_left[1]), (bottom_right[0],bottom_right[1]), (0,0,0), 1)
 
 def main():
 
@@ -123,12 +116,16 @@ def main():
     global colorframe
     colorframe = cv2.rectangle(colorFrame, (0,0), (400,405), (0,0,0), 1)
 
+    count1=0
+    sq1 = list()
+    sq2 = list()
+    sq3 = list()
+    sq4 = list()
+
     while(True):
         # start reading the camera
         _, frame = cap.read()
-        frame = cv2.flip(frame,1)
-
-        
+        #frame = cv2.flip(frame,1)
 
         # central rectangle to fit smaller rectangles in
         rectMark = cv2.rectangle(frame, upper_left, bottom_right, (255,255,255), 2)
@@ -151,7 +148,7 @@ def main():
         Cube3 = rect_img3
         Cube4 = rect_img4
 
-        # splitting the rgb channels from each cube and appending it into an array
+        # splitting the bgr channels from each cube and appending it into an array
         global cubeCols
         cubeCols = list()
         cubeCols.append(list(cv2.split(Cube1)))
@@ -159,13 +156,9 @@ def main():
         cubeCols.append(list(cv2.split(Cube3)))
         cubeCols.append(list(cv2.split(Cube4)))
         # print(cv2.mean(cubeCols[0][0])[0]) 
-
-        
-
         
         # reinitializing the side text according to count
         text = side[count]
-
 
         # adding text to the cv2 video frame
         cv2.putText(frame, 
@@ -173,61 +166,116 @@ def main():
                 (50, 50), 
                 font, 1, 
                 (255, 255, 255), 
-                2, 
+                2,
                 cv2.LINE_4)
 
-        # for i in CubeCols:
-            # print(i," : ",getcolor(CubeCols[i][0],CubeCols[i][1],CubeCols[i][2]))
+        CubeCols = {
+            'C0':[cv2.mean(cubeCols[0][0])[0], cv2.mean(cubeCols[0][1])[0], cv2.mean(cubeCols[0][2])[0]],
+            'C1':[cv2.mean(cubeCols[1][0])[0], cv2.mean(cubeCols[1][1])[0], cv2.mean(cubeCols[1][2])[0]],
+            'C2':[cv2.mean(cubeCols[2][0])[0], cv2.mean(cubeCols[2][1])[0], cv2.mean(cubeCols[2][2])[0]],
+            'C3':[cv2.mean(cubeCols[3][0])[0], cv2.mean(cubeCols[3][1])[0], cv2.mean(cubeCols[3][2])[0]]
+        }
+
+        sq1.append(classifier.PredictColor(CubeCols['C0'][0],CubeCols['C0'][1],CubeCols['C0'][2]))
+        sq2.append(classifier.PredictColor(CubeCols['C1'][0],CubeCols['C1'][1],CubeCols['C1'][2]))
+        sq3.append(classifier.PredictColor(CubeCols['C2'][0],CubeCols['C2'][1],CubeCols['C2'][2]))
+        sq4.append(classifier.PredictColor(CubeCols['C3'][0],CubeCols['C3'][1],CubeCols['C3'][2]))
+        count1 +=1
+
+        if count1 == 5:
+            count1 = 0
+            print("------------------")
+            print(st.mode(sq1))
+            print(st.mode(sq2))
+            print(st.mode(sq3))
+            print(st.mode(sq4))
+            print("------------------")
+            sq1.clear()
+            sq2.clear()
+            sq3.clear()
+            sq4.clear()
 
         #show the video frame
         cv2.imshow('frame', frame)
         cv2.imshow("Color Output",colorFrame)
-        # cv2.imshow('color output', colorFrame)
+
+        keypress = cv2.waitKey(1)
 
         # increment count variable
-        if cv2.waitKey(1) & 0xFF == ord('c'):
-            count += 1
-            if(count > 5):
-                count = 0
+        if keypress & 0xFF == ord('c'):
+            count = (count + 1) % 6
             print(count)
 
         # decrement count
-        if cv2.waitKey(1) & 0xFF == ord('x'):
-            if(count >= 0):
-                count -= 1
+        if keypress & 0xFF == ord('x'):
+            count = (count - 1) % 6
             print(count)
     
+        # Function to highlight the current side
+        if(count == 0):
+            MarkSide(bottom_up, bottom_down, 0)
+            MarkSide(front_up, front_down, 1)
+            MarkSide(right_up, right_down, 0)
+        elif(count == 1):
+            MarkSide(front_up, front_down, 0)
+            MarkSide(right_up, right_down, 1)
+            MarkSide(back_up, back_down, 0)
+        elif(count == 2):
+            MarkSide(right_up, right_down, 0)
+            MarkSide(back_up, back_down, 1)
+            MarkSide(left_up, left_down, 0)
+        elif(count == 3):
+            MarkSide(back_up, back_down, 0)
+            MarkSide(left_up, left_down, 1)
+            MarkSide(top_up, top_down, 0)
+        elif(count == 4):
+            MarkSide(left_up, left_down, 0)
+            MarkSide(top_up, top_down, 1)
+            MarkSide(bottom_up, bottom_down, 0)
+        else:
+            MarkSide(top_up, top_down, 0)
+            MarkSide(bottom_up, bottom_down, 1)
+            MarkSide(front_up, front_down, 0)
+
         # capture, store and display colors 
-        if cv2.waitKey(1) == 13:
+        if keypress == 13:
             print('enter pressed')
             if(count == 0):
                 print('filling front block')
                 fillBlocks(front_up, front_down, cen_f, offset2)
+                count = (count + 1) % 6
             elif(count == 1):
                 fillBlocks(right_up, right_down, cen_r, offset2)
+                count = (count + 1) % 6
             elif(count == 2):
                 fillBlocks(back_up, back_down, cen_b, offset2)
+                count = (count + 1) % 6
             elif(count == 3):
                 fillBlocks(left_up, left_down, cen_l, offset2)
+                count = (count + 1) % 6
             elif(count == 4):
                 fillBlocks(top_up, top_down, cen_t, offset2)
+                count = (count + 1) % 6
             else:
                 fillBlocks(bottom_up, bottom_down, cen_bt, offset2)
 
         #press q or 1 to quit
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if keypress & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
 
-
-
 def calibrate():
     pass
 
-main()
-
+if __name__ == "__main__":
+    #main()
+    classifier = KnnColor.KnnClassifier(2)
+    main()
+    #print(classifier.PredictColor( 62, 120, 130 ))
+    for i in colors:
+        print(i)
 
 
     
