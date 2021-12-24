@@ -4,7 +4,9 @@ from State import State
 
 states = []
 solvedState = 'WWWWOOOOYYYYRRRRGGGGBBBB'
-startState = CubeMoves.randomize(solvedState)
+# startState = CubeMoves.randomize(solvedState)
+uniqueStates = set()
+startState = "WWWWGBGBYYYYGBGBOORROORR"
 cubeMoves = [
     'F',\
     'Fp',\
@@ -18,20 +20,23 @@ cubeMoves = [
 def __main__():
     state = State(0, None, startState)
     states.append(state)
-    index = 0
+    index = 0  
+    count = 0
     while(True):
         
-        print(state.cState)
+        # print(state.cState)
         if(testCurrState(state)):
             break
-        addStates(moves(state), index)
+        count = addStates(moves(state), index, count)
         state = testChildState(len(states)-6)
+        # state = testChildState(len(states)-3)
         if(state != None):
             break
         index += 1
-        state = states[index]
-
-
+        if(index < len(states)):
+            state = states[index]
+    
+    print(count)
     displayOptimalPath(state)
 
 
@@ -51,10 +56,18 @@ def moves(state):
             CubeMoves.UpP(state.cState)]
 
 
-def addStates(children, index):
+def addStates(children, index, count):
     for i in range (6):
-        states.append(State(index, cubeMoves[i], children[i]))
-
+    # for i in range (3):
+        currSize = len(uniqueStates)
+        uniqueStates.add(children[i])
+        if(len(uniqueStates) > currSize):
+            count += 1
+            states.append(State(index, cubeMoves[i], children[i]))
+        else:
+            print(children[i])
+            print("path already visited")
+    return count
 
 def testCurrState(state):
     return state.cState == solvedState
@@ -62,6 +75,7 @@ def testCurrState(state):
 
 def testChildState(startingNode):
     for startingNode in range (startingNode + 6):
+    # for startingNode in range (startingNode + 3):
         if(states[startingNode].cState == solvedState):
             return states[startingNode]
     return None

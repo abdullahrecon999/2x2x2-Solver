@@ -1,9 +1,9 @@
-index = 0
+from typing import Set
 
 
-def testFunc(index):
-    for i in range (5):
-        i+=1
+test_Set = set()
 
-testFunc(index)
-print(index)
+test_Set.add(1)
+test_Set.add(2)
+test_Set.add(2)
+print(test_Set)

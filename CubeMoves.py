@@ -59,16 +59,16 @@ def randomize(solvedState):
         print(randomMethod)
         if(randomMethod == 0):
             shuffledCube = Front(shuffledCube)
-        elif(randomMethod == 1):
-            shuffledCube = FrontP(shuffledCube)
+        # elif(randomMethod == 1):
+        #     shuffledCube = FrontP(shuffledCube)
         elif(randomMethod == 2):
             shuffledCube = Up(shuffledCube)
-        elif(randomMethod == 3):
-            shuffledCube = UpP(shuffledCube)
+        # elif(randomMethod == 3):
+        #     shuffledCube = UpP(shuffledCube)
         elif(randomMethod == 4):
             shuffledCube = Right(shuffledCube)
-        else:
-            shuffledCube = RightP(shuffledCube)
+        # else:
+        #     shuffledCube = RightP(shuffledCube)
     return shuffledCube
 
 # print(randomize(cube))
@@ -82,4 +82,13 @@ def randomize(solvedState):
 # print(UpP(Up(cube)))
 # print(UpP(Up(Up(cube))))
 
-print(Front("WWWWOOOOYYYYRRRRGGGGBBBB"))
+startState = "OYWROGYROWGYOBRRGYWBBGBW"
+
+print(RightP(startState))
+print(UpP(RightP(startState)))
+print(RightP(UpP(RightP(startState))))
+print(UpP(RightP(UpP(RightP(startState)))))
+# print(Up(FrontP(Up(startState))))
+# print(FrontP(Up(FrontP(Up(startState)))))
+
+# print(FrontP("WWWWGOGOYYYYRBRBGGRROOBB"))
