@@ -82,4 +82,4 @@ def randomize(solvedState):
 # print(UpP(Up(cube)))
 # print(UpP(Up(Up(cube))))
 
-print()
+print(Front("WWWWOOOOYYYYRRRRGGGGBBBB"))

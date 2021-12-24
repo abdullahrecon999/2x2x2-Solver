@@ -70,9 +70,6 @@ __main__()
 
 # call all the moves and return the states to the caller method
 
-
-
-
 # print(CubeMoves.Front(state.cState))
     # print(CubeMoves.FrontP(state.cState))
     # print(CubeMoves.Right(state.cState))
