@@ -1,5 +1,8 @@
 
+
 import random as rand
+
+
 
 # Cube will be like WWWWBBRRGGOOGGOBRRYYY
 # Solved Cube is WWWWOOOOYYYYRRRRGGGGBBBB
@@ -51,6 +54,7 @@ def RightP(pos):
     return ''.join(RPstate)
 
 
+
 def randomize(solvedState):
     randomMethod = -1
     shuffledCube = solvedState
@@ -83,3 +87,10 @@ def randomize(solvedState):
 # print(UpP(Up(Up(cube))))
 
 print(Front("WWWWOOOOYYYYRRRRGGGGBBBB"))
+=======
+cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
+# print(Front(cube))
+# print(FrontP(Front(cube)))
+print(Right(cube))
+print(RightP(Right(cube)))
+
