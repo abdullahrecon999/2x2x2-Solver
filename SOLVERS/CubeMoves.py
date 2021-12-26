@@ -125,5 +125,38 @@ def randomize(solvedState):
     return shuffledCube
 
 
+# print(randomize(cube))
+# # print(Front(cube))
+# # print(FrontP(Front(cube)))
+# print(Right(cube))
+# print(Right(cube))
+# print(RightP(Right((Right(cube)))))
+
+# print(Up(cube))
+# print(UpP(Up(cube)))
+# print(UpP(Up(Up(cube))))
+
+#print(Front("WWWWOOOOYYYYRRRRGGGGBBBB"))
 # cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
 # print(Left(cube))
+
+# print(Front(cube))
+# print(FrontP(Front(cube)))
+#print(Right(Right('WYWYOOOOWYWYRRRRGBGBBGBG')))
+#print(RightP(Right(cube)))
+
+
+state = 'RWYGBROBWRYOGWGOYGBOBWYR'
+
+print(Left(state))
+print(FrontP(Left(state)))
+print(BackP(FrontP(Left(state))))
+print(RightP(BackP(FrontP(Left(state)))))
+print(FrontP(RightP(BackP(FrontP(Left(state))))))
+print(RightP(FrontP(RightP(BackP(FrontP(Left(state)))))))
+print(FrontP(RightP(FrontP(RightP(BackP(FrontP(Left(state))))))))
+=======
+
+# cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
+# print(Left(cube))
+
