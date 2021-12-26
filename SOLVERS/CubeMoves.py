@@ -25,6 +25,9 @@ def FrontP(pos):
         FPstate[i] = copy[F[i]]
     return ''.join(FPstate)
 
+def Front2(pos):
+    return ''.join(Front(Front(pos)))
+
 def Up(pos):
     copy = list(pos)
     Ustate = list(pos)
@@ -38,6 +41,9 @@ def UpP(pos):
     for i in U:
         UPstate[i] = copy[U[i]]
     return ''.join(UPstate)
+
+def Up2(pos):
+    return ''.join(Up(Up(pos)))
 
 def Right(pos):
     copy = list(pos)
@@ -53,6 +59,8 @@ def RightP(pos):
         RPstate[i] = copy[R[i]]
     return ''.join(RPstate)
 
+def Right2(pos):
+    return ''.join(Right(Right(pos)))
 
 def Back(pos):
     copy = list(pos)
@@ -99,7 +107,7 @@ def LeftP(pos):
 def randomize(solvedState):
     randomMethod = -1
     shuffledCube = solvedState
-    for i in range (6):
+    for i in range (70):
         randomMethod = rand.randint(0, 5)
         print(randomMethod)
         if(randomMethod == 0):
@@ -115,6 +123,7 @@ def randomize(solvedState):
         else:
             shuffledCube = RightP(shuffledCube)
     return shuffledCube
+
 
 # print(randomize(cube))
 # # print(Front(cube))
@@ -146,3 +155,8 @@ print(RightP(BackP(FrontP(Left(state)))))
 print(FrontP(RightP(BackP(FrontP(Left(state))))))
 print(RightP(FrontP(RightP(BackP(FrontP(Left(state)))))))
 print(FrontP(RightP(FrontP(RightP(BackP(FrontP(Left(state))))))))
+=======
+
+# cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
+# print(Left(cube))
+
