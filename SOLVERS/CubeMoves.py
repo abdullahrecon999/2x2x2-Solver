@@ -128,10 +128,21 @@ def randomize(solvedState):
 # print(UpP(Up(Up(cube))))
 
 #print(Front("WWWWOOOOYYYYRRRRGGGGBBBB"))
-cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
-print(Left(cube))
+# cube = 'WWWWOOOOYYYYRRRRGGGGBBBB'
+# print(Left(cube))
 
 # print(Front(cube))
 # print(FrontP(Front(cube)))
 #print(Right(Right('WYWYOOOOWYWYRRRRGBGBBGBG')))
 #print(RightP(Right(cube)))
+
+
+state = 'RWYGBROBWRYOGWGOYGBOBWYR'
+
+print(Left(state))
+print(FrontP(Left(state)))
+print(BackP(FrontP(Left(state))))
+print(RightP(BackP(FrontP(Left(state)))))
+print(FrontP(RightP(BackP(FrontP(Left(state))))))
+print(RightP(FrontP(RightP(BackP(FrontP(Left(state)))))))
+print(FrontP(RightP(FrontP(RightP(BackP(FrontP(Left(state))))))))
