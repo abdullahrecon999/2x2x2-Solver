@@ -120,9 +120,9 @@ class CubeState:
                 
         return "[!] Cube Pattern Incorrect"
 
-def main():
-    pass
+# def main():
+#     pass
 
-if __name__ == "__main__":
-    cube = CubeState('YWBYGGBGOWROBRWWOYBRROGY','',0)    
-    print(cube.Solve())
+# if __name__ == "__main__":
+#     cube = CubeState('YWBYGGBGOWROBRWWOYBRROGY','',0)    
+#     print(cube.Solve())

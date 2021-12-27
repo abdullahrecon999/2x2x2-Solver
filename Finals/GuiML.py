@@ -1,13 +1,22 @@
 import cv2
 import numpy as np
 import KnnColor
+import Solver
+import queue
+import threading
+import time
+import solution
+from threading import Thread
 import PySimpleGUI as sg
 
+from solution import SolutionDisplay
+
 sg.theme('LightBrown1')
+check = threading.Condition()
 
 layout = [
     [sg.Image(filename='', key='Main'),sg.Image(filename='', key='Second')],
-    [sg.Frame('Video Feed',[[sg.Text("ON"),sg.Slider(range=(0, 1), orientation='h', size=(10, 30), default_value=0,disable_number_display=True,trough_color='#566573',key='switch'),sg.Text("OFF")]]),sg.Button('Run Solution', size=(9, 3),font="ariel 13 bold"),sg.Button('Exit', size=(9, 3),font="ariel 13 bold")]
+    [sg.Frame('Video Feed',[[sg.Text("ON"),sg.Slider(range=(0, 1), orientation='h', size=(10, 30), default_value=0,disable_number_display=True,trough_color='#566573',key='switch'),sg.Text("OFF")]]),sg.Button('Run Solution', size=(11, 3),font="ariel 13 bold"),sg.Button('Exit', size=(10, 3),font="ariel 13 bold"),sg.Button('Reset', size=(10, 3),font="ariel 13 bold")]
 ]
 
 window = sg.Window('OpenCV real-time image processing',layout,location=(400, 100),finalize=True,return_keyboard_events=True, use_default_focus=False)
@@ -57,15 +66,21 @@ side = ['FRONT', 'RIGHT', 'BACK', 'LEFT', 'UP', 'BOTTOM']
 
 defaultCols = {
      0:      [255,255,255],
-    'blue':  [255, 51, 19  ],
+    'blue':  [255, 51, 19 ],
     'white': [249, 237, 236],
     'red':   [45, 48, 251],
-    'green': [45, 251, 80 ],
-    'yellow':[38, 254, 251 ],
+    'green': [45, 251, 80],
+    'yellow':[38, 254, 251],
     'orange':[17, 154, 255],
 }
 
 colors = [[0 for x in range(4)] for y in range(6)] 
+
+def clearColorFrame(upper_left, bottom_right, center, offset):
+    r1 = cv2.rectangle(colorframe, (upper_left[0]+offset,upper_left[1]+offset), (center[0]-offset,center[1]-offset), (0,0,0), -1)
+    r2 = cv2.rectangle(colorframe, (center[0]+offset,upper_left[1]+offset), (bottom_right[0]-offset,center[1]-offset), (0,0,0), -1)
+    r3 = cv2.rectangle(colorframe, (upper_left[0]+offset,center[1]+offset), (center[0]-offset,bottom_right[1]-offset), (0,0,0), -1)
+    r4 = cv2.rectangle(colorframe, (center[0]+offset,center[1]+offset), (bottom_right[0]-offset,bottom_right[1]-offset), (0,0,0), -1)
 
 def fillBlocks(upper_left, bottom_right, center, offset):
     fillColors()
@@ -202,7 +217,7 @@ def main():
                 if 'q' in keypress:
                     break
 
-                if ('c' in event):
+                if 'c' in event:
                     count = (count + 1) % 6
                     print(count)
 
@@ -259,8 +274,8 @@ def main():
                     showArrow(turn_up_end2, turn_up_start2)
                     remArrow(turn_right_end, turn_right_start)
 
-                if 'Return' in keypress:
-                    print('enter pressed')
+                if 'Return' in keypress or 'z' in keypress:
+                    print('Enter pressed')
                     if(count == 0):
                         print('filling front block')
                         fillBlocks(front_up, front_down, cen_f, offset2)
@@ -280,14 +295,83 @@ def main():
                     else:
                         fillBlocks(bottom_up, bottom_down, cen_bt, offset2)
                         count = (count + 1) % 6
-            except:
-                print()            
+
+            except Exception as e:
+                print("Some Error: ",str(e))
 
         if event == 'Exit' or event is None:
             break
 
+        if event == 'Run Solution':
+            print("Run Solution")
+            cube = Solver.CubeState(PatternString(colors),'',0)
+            RunnerPopup(cube)
+
+        if event == 'Reset':
+            clearColorFrame(front_up, front_down, cen_f, offset2)
+            clearColorFrame(left_up, left_down, cen_l, offset2)
+            clearColorFrame(right_up, right_down, cen_r, offset2)
+            clearColorFrame(top_up, top_down, cen_t, offset2)
+            clearColorFrame(bottom_up, bottom_down, cen_bt, offset2)
+            clearColorFrame(back_up, back_down, cen_b, offset2)
+            for i in range(len(colors)):
+                colors[i] = [0,0,0,0]
+            
     cap.release()
     cv2.destroyAllWindows()
+
+def AlgorithmRunner(work_id, gui_queue,cube):
+    status = cube.Solve()
+    gui_queue.put('{} ::: done ::: {}'.format(work_id,status))
+    return
+
+def RunnerPopup(cube):
+
+    gui_queue = queue.Queue()
+
+    layout = [[sg.Text('Run The Bi Directional Solution Search')],
+              [sg.Text('Status', size=(25, 1), key='_OUTPUT_')],
+              [sg.Text(size=(25, 1), key='_OUTPUT2_')],
+              [sg.Button('Go'), sg.Button('Exit')], ]
+
+    window = sg.Window('Algorithm Runner').Layout(layout)
+
+    work_id = 0
+    while True:
+        event, values = window.Read(timeout=100)
+
+        if event is None or event == 'Exit':
+            break
+        if event == 'Go':
+            window.Element('_OUTPUT_').Update('Starting Algorithm %s' % work_id)
+            thread_id = threading.Thread(target=AlgorithmRunner, args=(work_id, gui_queue,cube,), daemon=True)
+            thread_id.start()
+            work_id = work_id + 1 if work_id < 19 else 0
+
+        try:
+            message = gui_queue.get_nowait()
+        except queue.Empty:
+            message = None
+
+        if message is not None:
+            status = str(message)
+            print(status.split(":::")[2])
+            window.Element('_OUTPUT2_').Update('Status %s' % status.split(":::")[2])
+            work_id -= 1
+            if not work_id:
+                sg.PopupAnimated(None)
+            
+            if not('No' in (status.split(":::")[2]) or 'Incorrect' in (status.split(":::")[2])):
+                print(status.split(":::")[2])
+                print(status.split(":::"))
+                SolutionWindow = SolutionDisplay(status.split(":::")[2],cube.state)
+                SolutionWindow.DisplayWindow()
+
+        if work_id:
+            sg.PopupAnimated(sg.DEFAULT_BASE64_LOADING_GIF, background_color='white', time_between_frames=100)
+
+    window.Close()
+
 
 def PatternString(colorArray):
     pattern = list()
@@ -314,6 +398,9 @@ if __name__ == "__main__":
     main()
     print(colors)
     print(PatternString(colors))
+    # import solution
+    # SolutionWindow = SolutionDisplay("F F F F'","abcd")
+    # SolutionWindow.DisplayWindow()
     
 
 
