@@ -1,6 +1,6 @@
 # 2x2x2-Solver
 
-Added KNN Classification code for color (doesn't work really well but meh...)
+Added KNN Classification code for color detection
 
 ## Python GUI Library
 - https://pysimplegui.readthedocs.io/en/latest/
